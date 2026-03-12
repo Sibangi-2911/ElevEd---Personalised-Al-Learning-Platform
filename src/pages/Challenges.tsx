@@ -1,15 +1,16 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { 
-  Zap, 
-  Clock, 
+import { Input } from "@/components/ui/input";
+import {
+  Zap,
+  Clock,
   Trophy,
   CheckCircle2,
   Code,
   Brain,
   Target,
   Flame,
-  Star
+  Star,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -75,12 +76,36 @@ const weeklyStats = {
 
 export default function Challenges() {
   const [filter, setFilter] = useState("all");
+  const [question, setQuestion] = useState("");
+  const [aiReply, setAiReply] = useState("");
 
-  const filteredChallenges = dailyChallenges.filter(c => {
+  const filteredChallenges = dailyChallenges.filter((c) => {
     if (filter === "completed") return c.completed;
     if (filter === "pending") return !c.completed;
     return true;
   });
+  async function askPeerTwin() {
+    if (!question) {
+      setAiReply("Please ask a question.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/peer-twin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ question }),
+      });
+
+      const data = await response.json();
+
+      setAiReply(data.reply);
+    } catch (error) {
+      setAiReply("AI server not responding.");
+    }
+  }
 
   return (
     <div className="min-h-screen py-12">
@@ -93,13 +118,16 @@ export default function Challenges() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-warning/20 border border-warning/30 mb-4">
             <Flame className="w-5 h-5 text-warning" />
-            <span className="text-warning font-medium">{weeklyStats.streak} Day Streak!</span>
+            <span className="text-warning font-medium">
+              {weeklyStats.streak} Day Streak!
+            </span>
           </div>
           <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4">
             Daily <span className="gradient-text">Challenges</span>
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Sharpen your skills with AI-generated challenges that adapt to your progress.
+            Sharpen your skills with AI-generated challenges that adapt to your
+            progress.
           </p>
         </motion.div>
 
@@ -111,20 +139,76 @@ export default function Challenges() {
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
         >
           {[
-            { icon: Flame, label: "Day Streak", value: weeklyStats.streak, color: "text-warning" },
-            { icon: CheckCircle2, label: "Problems Solved", value: weeklyStats.solved, color: "text-success" },
-            { icon: Star, label: "XP Earned", value: weeklyStats.xpEarned, color: "text-primary" },
-            { icon: Trophy, label: "Global Rank", value: `#${weeklyStats.rank}`, color: "text-accent" },
+            {
+              icon: Flame,
+              label: "Day Streak",
+              value: weeklyStats.streak,
+              color: "text-warning",
+            },
+            {
+              icon: CheckCircle2,
+              label: "Problems Solved",
+              value: weeklyStats.solved,
+              color: "text-success",
+            },
+            {
+              icon: Star,
+              label: "XP Earned",
+              value: weeklyStats.xpEarned,
+              color: "text-primary",
+            },
+            {
+              icon: Trophy,
+              label: "Global Rank",
+              value: `#${weeklyStats.rank}`,
+              color: "text-accent",
+            },
           ].map((stat, index) => (
-            <div key={stat.label} className="p-4 rounded-xl bg-card border border-border">
+            <div
+              key={stat.label}
+              className="p-4 rounded-xl bg-card border border-border"
+            >
               <stat.icon className={`w-6 h-6 ${stat.color} mb-2`} />
-              <div className="font-heading text-2xl font-bold">{stat.value}</div>
+              <div className="font-heading text-2xl font-bold">
+                {stat.value}
+              </div>
               <div className="text-sm text-muted-foreground">{stat.label}</div>
             </div>
           ))}
         </motion.div>
 
         {/* Filters */}
+        {/* Peer Twin AI */}
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mb-8 p-6 rounded-2xl bg-card border border-border"
+        >
+          <h2 className="text-xl font-semibold mb-4">Peer Twin AI Tutor</h2>
+
+          <p className="text-sm text-muted-foreground mb-4">
+            Ask your AI learning twin about programming concepts or challenge
+            hints.
+          </p>
+
+          <div className="flex gap-3 mb-3">
+            <Input
+              placeholder="Ask your AI twin a question..."
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+            />
+
+            <Button onClick={askPeerTwin}>Ask</Button>
+          </div>
+
+          {aiReply && (
+            <p className="text-sm text-primary font-medium">
+              AI Twin: {aiReply}
+            </p>
+          )}
+        </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -153,18 +237,24 @@ export default function Challenges() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + index * 0.05 }}
               className={`group p-6 rounded-2xl bg-card border transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 ${
-                challenge.completed ? "border-success/30 bg-success/5" : "border-border hover:border-primary/50"
+                challenge.completed
+                  ? "border-success/30 bg-success/5"
+                  : "border-border hover:border-primary/50"
               }`}
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    challenge.completed 
-                      ? "bg-success/20 text-success" 
-                      : challenge.difficulty === "Easy" ? "bg-success/20 text-success"
-                      : challenge.difficulty === "Medium" ? "bg-warning/20 text-warning"
-                      : "bg-destructive/20 text-destructive"
-                  }`}>
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      challenge.completed
+                        ? "bg-success/20 text-success"
+                        : challenge.difficulty === "Easy"
+                          ? "bg-success/20 text-success"
+                          : challenge.difficulty === "Medium"
+                            ? "bg-warning/20 text-warning"
+                            : "bg-destructive/20 text-destructive"
+                    }`}
+                  >
                     {challenge.completed ? (
                       <CheckCircle2 className="w-6 h-6" />
                     ) : (
@@ -173,11 +263,15 @@ export default function Challenges() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        challenge.difficulty === "Easy" ? "bg-success/20 text-success" :
-                        challenge.difficulty === "Medium" ? "bg-warning/20 text-warning" :
-                        "bg-destructive/20 text-destructive"
-                      }`}>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          challenge.difficulty === "Easy"
+                            ? "bg-success/20 text-success"
+                            : challenge.difficulty === "Medium"
+                              ? "bg-warning/20 text-warning"
+                              : "bg-destructive/20 text-destructive"
+                        }`}
+                      >
                         {challenge.difficulty}
                       </span>
                       <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
@@ -187,7 +281,9 @@ export default function Challenges() {
                     <h3 className="font-heading font-semibold text-lg group-hover:text-primary transition-colors">
                       {challenge.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground">{challenge.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {challenge.description}
+                    </p>
                   </div>
                 </div>
 
@@ -202,7 +298,7 @@ export default function Challenges() {
                       {challenge.xp} XP
                     </span>
                   </div>
-                  <Button 
+                  <Button
                     variant={challenge.completed ? "outline" : "gradient"}
                     disabled={challenge.completed}
                   >
