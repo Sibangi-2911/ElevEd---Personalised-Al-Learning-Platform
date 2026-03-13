@@ -1,8 +1,17 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Zap, ClipboardCheck, Briefcase, Menu, X, GraduationCap } from "lucide-react";
+import {
+  BookOpen,
+  Zap,
+  ClipboardCheck,
+  Briefcase,
+  Menu,
+  X,
+  GraduationCap,
+} from "lucide-react";
 import { useState } from "react";
+import { Brain } from "lucide-react";
 
 const navItems = [
   { name: "Home", path: "/", icon: null },
@@ -23,15 +32,18 @@ export function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/25 transition-all duration-300">
-              <GraduationCap className="w-6 h-6 text-primary-foreground" />
+              <Brain className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="font-heading font-bold text-xl gradient-text">ElevEd</span>
+            <span className="font-heading font-bold text-xl gradient-text">
+              ElevEd
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
-              const isActive = location.pathname === item.path || 
+              const isActive =
+                location.pathname === item.path ||
                 (item.path !== "/" && location.pathname.startsWith(item.path));
               return (
                 <Link key={item.name} to={item.path}>
@@ -46,7 +58,11 @@ export function Navbar() {
                         layoutId="activeNav"
                         className="absolute bottom-0 left-0 right-0 h-0.5 gradient-primary rounded-full"
                         initial={false}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 30,
+                        }}
                       />
                     )}
                   </Button>
@@ -88,7 +104,11 @@ export function Navbar() {
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
-                  <Link key={item.name} to={item.path} onClick={() => setMobileMenuOpen(false)}>
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     <Button
                       variant={isActive ? "secondary" : "ghost"}
                       className="w-full justify-start"
@@ -100,11 +120,23 @@ export function Navbar() {
                 );
               })}
               <div className="flex gap-2 mt-4 pt-4 border-t border-border/50">
-                <Link to="/auth" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="outline" className="w-full">Log In</Button>
+                <Link
+                  to="/auth"
+                  className="flex-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button variant="outline" className="w-full">
+                    Log In
+                  </Button>
                 </Link>
-                <Link to="/auth?mode=signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="gradient" className="w-full">Get Started</Button>
+                <Link
+                  to="/auth?mode=signup"
+                  className="flex-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button variant="gradient" className="w-full">
+                    Get Started
+                  </Button>
                 </Link>
               </div>
             </div>
