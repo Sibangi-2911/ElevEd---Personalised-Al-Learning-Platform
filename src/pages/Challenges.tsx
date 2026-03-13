@@ -96,12 +96,20 @@ export default function Challenges() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ 
+          question: question,
+          level: "beginner",
+          weakTopics: "recursion"
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error("Server error");
+      }
 
       const data = await response.json();
 
-      setAiReply(data.reply);
+      setAiReply(data.twinReply);
     } catch (error) {
       setAiReply("AI server not responding.");
     }

@@ -1,7 +1,11 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
+const { GoogleGenAI } = require("@google/genai");
 
 const app = express();
+const PORT = 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -50,29 +54,46 @@ app.post("/api/predict-mastery", (req, res) => {
   });
 });
 
-/* Peer Twin AI */
+/* Peer Twin AI using Gemini */
 
-app.post("/api/peer-twin", (req, res) => {
-  const { skill } = req.body;
-
-  let challenge = "";
-
-  if (skill === "react") {
-    challenge = "Build a Todo App using React Hooks";
-  } else if (skill === "dsa") {
-    challenge = "Solve 5 Array and 3 Linked List problems today";
-  } else if (skill === "javascript") {
-    challenge = "Practice Promises and Async/Await problems";
-  } else {
-    challenge = "Complete 3 coding problems today";
-  }
-
-  res.json({
-    peerTwin: `Your AI Peer Twin suggests: ${challenge}`,
-  });
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
 });
 
-const PORT = 5000;
+app.post("/api/peer-twin", async (req, res) => {
+  try {
+    const { question, level, weakTopics } = req.body;
+
+    const prompt = `
+You are a Peer Twin AI learning partner.
+
+Student level: ${level}
+Weak topics: ${weakTopics}
+
+Student asked: ${question}
+
+Explain clearly and ask a follow-up question.
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    res.json({
+      twinReply: response.text,
+    });
+
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "AI error" });
+  }
+});
+
+app.get("/", (req, res) => {
+  res.send("ElevEd AI Backend is running ");
+});
 
 app.listen(PORT, () => {
   console.log(`AI Server running on http://localhost:${PORT}`);

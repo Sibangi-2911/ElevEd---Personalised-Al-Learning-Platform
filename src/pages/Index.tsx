@@ -81,7 +81,7 @@ export default function Index() {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border mb-6"
               >
                 <Star className="w-4 h-4 text-warning" />
-                <span className="text-sm text-muted-foreground">Trusted by 50,000+ learners</span>
+                <span className="text-sm text-muted-foreground"></span>
               </motion.div>
 
               <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
@@ -95,7 +95,7 @@ export default function Index() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link to="/paths">
+                <Link to="/auth?mode=signup">
                   <Button variant="gradient" size="xl" className="group">
                     Start Learning Free
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -310,8 +310,7 @@ export default function Index() {
               Ready to <span className="gradient-text">Transform</span> Your Career?
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Join thousands of learners who have accelerated their careers with ElevEd's 
-              AI-powered learning platform.
+              
             </p>
             <Link to="/auth?mode=signup">
               <Button variant="gradient" size="xl" className="group">
@@ -334,7 +333,7 @@ export default function Index() {
               <span className="font-heading font-bold gradient-text">ElevEd</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2024 ElevEd. Elevate Your Education.
+              © 2026 ElevEd. Elevate Your Education.
             </p>
           </div>
         </div>
