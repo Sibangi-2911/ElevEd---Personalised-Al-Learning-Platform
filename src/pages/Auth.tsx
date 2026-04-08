@@ -39,12 +39,47 @@ export default function Auth() {
     setLoading(true);
     
     // Simulate authentication
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success(isLogin ? "Welcome back!" : "Account created successfully!");
-    setLoading(false);
+    try {
+      const endpoint = isLogin
+        ? "http://localhost:5000/api/login"
+        : "http://localhost:5000/api/signup";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message);
+    }
+
+    localStorage.setItem("user", JSON.stringify(data.user));
+    toast.success(data.message);
+
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+    });
+
     navigate("/paths");
-  };
+
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      toast.error(error.message);
+    } else {
+      toast.error("Authentication failed");
+    }
+  }
+
+  setLoading(false);
+};
+
 
   return (
     <div className="min-h-screen flex">
