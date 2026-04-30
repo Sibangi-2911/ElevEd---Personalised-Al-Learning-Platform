@@ -13,7 +13,7 @@ const Progress = require("./models/Progress");
 const CareerProgress = require("./models/CareerProgress");
 
 const app = express();
-const PORT = 5000;
+//const PORT = 5000;
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
@@ -555,6 +555,7 @@ app.get("/api/get-path-progress/:pathId", auth, async (req, res) => {
 
 
 //
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`AI Server running on http://localhost:${PORT}`);
 });
