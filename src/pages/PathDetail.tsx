@@ -14,16 +14,17 @@ import {
   Code,
   Award,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Loader2
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface Lesson {
   title: string;
   duration: string;
   type: "video" | "article" | "quiz" | "project";
   videoId?: string;
-  completed?: boolean;
+  
 }
 
 interface Module {
@@ -36,7 +37,7 @@ interface PathData {
   description: string;
   level: string;
   duration: string;
-  students: string;
+  students: string | null;
   tags: string[];
   overview: string;
   whatYouLearn: string[];
@@ -50,7 +51,7 @@ const pathData: Record<string, PathData> = {
     description: "Master frontend and backend technologies to become a complete web developer.",
     level: "Intermediate",
     duration: "16 weeks",
-    students: "12,450",
+    students: null,
     tags: ["React", "Node.js", "PostgreSQL", "TypeScript"],
     overview: "This comprehensive path takes you from foundational web development concepts to building production-ready full-stack applications. You'll learn React for frontend, Node.js for backend, and PostgreSQL for databases.",
     whatYouLearn: [
@@ -65,35 +66,35 @@ const pathData: Record<string, PathData> = {
       {
         title: "Module 1: Web Fundamentals",
         lessons: [
-          { title: "Introduction to HTML & CSS", duration: "45 min", type: "video", videoId: "qz0aGYrrlhU", completed: true },
-          { title: "JavaScript Basics", duration: "60 min", type: "video", videoId: "W6NZfCO5SIk", completed: true },
-          { title: "Practice: Build a Landing Page", duration: "90 min", type: "project", completed: false },
+          { title: "Introduction to HTML & CSS", duration: "45 min", type: "video", videoId: "qz0aGYrrlhU"},
+          { title: "JavaScript Basics", duration: "60 min", type: "video", videoId: "W6NZfCO5SIk"},
+          //{ title: "Practice: Build a Landing Page", duration: "90 min", type: "project", completed: false },
         ]
       },
       {
         title: "Module 2: React Fundamentals",
         lessons: [
-          { title: "Introduction to React", duration: "50 min", type: "video", videoId: "Tn6-PIqc4UM", completed: false },
-          { title: "Components and Props", duration: "45 min", type: "video", videoId: "j942wKiXFu8", completed: false },
-          { title: "State and Hooks", duration: "60 min", type: "video", videoId: "O6P86uwfdR0", completed: false },
-          { title: "Quiz: React Basics", duration: "15 min", type: "quiz", completed: false },
+          { title: "Introduction to React", duration: "50 min", type: "video", videoId: "Tn6-PIqc4UM"},
+          { title: "Components and Props", duration: "45 min", type: "video", videoId: "j942wKiXFu8" },
+          { title: "State and Hooks", duration: "60 min", type: "video", videoId: "O6P86uwfdR0" },
+          //{ title: "Quiz: React Basics", duration: "15 min", type: "quiz", completed: false },
         ]
       },
       {
         title: "Module 3: Advanced React",
         lessons: [
-          { title: "Context API & State Management", duration: "55 min", type: "video", videoId: "35lXWvCuM8o", completed: false },
-          { title: "React Router", duration: "40 min", type: "video", videoId: "Law7wfdg_ls", completed: false },
-          { title: "Project: Task Manager App", duration: "120 min", type: "project", completed: false },
+          { title: "Context API & State Management", duration: "55 min", type: "video", videoId: "35lXWvCuM8o" },
+          { title: "React Router", duration: "40 min", type: "video", videoId: "Law7wfdg_ls" },
+          //{ title: "Project: Task Manager App", duration: "120 min", type: "project", completed: false },
         ]
       },
       {
         title: "Module 4: Node.js Backend",
         lessons: [
-          { title: "Introduction to Node.js", duration: "45 min", type: "video", videoId: "TlB_eWDSMt4", completed: false },
-          { title: "Express.js Fundamentals", duration: "50 min", type: "video", videoId: "L72fhGm1tfE", completed: false },
-          { title: "REST API Design", duration: "40 min", type: "video", videoId: "0oXYLzuucwE", completed: false },
-          { title: "Practice: Build Your First API", duration: "90 min", type: "project", completed: false },
+          { title: "Introduction to Node.js", duration: "45 min", type: "video", videoId: "TlB_eWDSMt4"},
+          { title: "Express.js Fundamentals", duration: "50 min", type: "video", videoId: "L72fhGm1tfE" },
+          { title: "REST API Design", duration: "40 min", type: "video", videoId: "0oXYLzuucwE"},
+          //{ title: "Practice: Build Your First API", duration: "90 min", type: "project", completed: false },
         ]
       },
     ]
@@ -103,7 +104,7 @@ const pathData: Record<string, PathData> = {
     description: "Build strong problem-solving skills with comprehensive DSA training.",
     level: "Beginner",
     duration: "12 weeks",
-    students: "8,230",
+    students: null,
     tags: ["Arrays", "Trees", "Graphs", "Dynamic Programming"],
     overview: "Master the fundamentals of data structures and algorithms, essential for technical interviews and efficient programming.",
     whatYouLearn: [
@@ -118,17 +119,17 @@ const pathData: Record<string, PathData> = {
       {
         title: "Module 1: Arrays & Strings",
         lessons: [
-          { title: "Introduction to Arrays", duration: "40 min", type: "video", videoId: "QJNwK2uJyGs", completed: false },
-          { title: "Two Pointer Technique", duration: "35 min", type: "video", videoId: "IJKpB3QOC7w", completed: false },
-          { title: "Sliding Window Problems", duration: "45 min", type: "video", videoId: "MK-NZ4hN7rs", completed: false },
+          { title: "Introduction to Arrays", duration: "40 min", type: "video", videoId: "QJNwK2uJyGs" },
+          { title: "Two Pointer Technique", duration: "35 min", type: "video", videoId: "IJKpB3QOC7w" },
+          //{ title: "Sliding Window Problems", duration: "45 min", type: "video", videoId: "MK-NZ4hN7rs", completed: false },
         ]
       },
       {
         title: "Module 2: Linked Lists",
         lessons: [
-          { title: "Singly Linked Lists", duration: "50 min", type: "video", videoId: "Hj_rA0dhr2I", completed: false },
-          { title: "Doubly Linked Lists", duration: "40 min", type: "video", videoId: "njTh_OwMljA", completed: false },
-          { title: "Practice Problems", duration: "60 min", type: "project", completed: false },
+          { title: "Singly Linked Lists", duration: "50 min", type: "video", videoId: "Hj_rA0dhr2I"},
+          { title: "Doubly Linked Lists", duration: "40 min", type: "video", videoId: "njTh_OwMljA" },
+          //{ title: "Practice Problems", duration: "60 min", type: "project", completed: false },
         ]
       },
     ]
@@ -138,7 +139,7 @@ const pathData: Record<string, PathData> = {
     description: "Learn CI/CD, containerization, and cloud infrastructure management.",
     level: "Advanced",
     duration: "14 weeks",
-    students: "5,890",
+    students: null,
     tags: ["Docker", "Kubernetes", "AWS", "CI/CD"],
     overview: "Become a DevOps engineer by mastering containerization, orchestration, cloud services, and automation pipelines.",
     whatYouLearn: [
@@ -153,16 +154,16 @@ const pathData: Record<string, PathData> = {
       {
         title: "Module 1: Docker Fundamentals",
         lessons: [
-          { title: "Introduction to Containers", duration: "45 min", type: "video", videoId: "fqMOX6JJhGo", completed: false },
-          { title: "Dockerfile Best Practices", duration: "40 min", type: "video", videoId: "3c-iBn73dDE", completed: false },
-          { title: "Docker Compose", duration: "50 min", type: "video", videoId: "HG6yIjZapSA", completed: false },
+          { title: "Introduction to Containers", duration: "45 min", type: "video", videoId: "fqMOX6JJhGo"},
+          { title: "Dockerfile Best Practices", duration: "40 min", type: "video", videoId: "3c-iBn73dDE" },
+          { title: "Docker Compose", duration: "50 min", type: "video", videoId: "HG6yIjZapSA" },
         ]
       },
       {
         title: "Module 2: Kubernetes",
         lessons: [
-          { title: "Kubernetes Architecture", duration: "55 min", type: "video", videoId: "X48VuDVv0do", completed: false },
-          { title: "Deployments and Services", duration: "45 min", type: "video", videoId: "s_o8dwzRlu4", completed: false },
+          { title: "Kubernetes Architecture", duration: "55 min", type: "video", videoId: "X48VuDVv0do"},
+          { title: "Deployments and Services", duration: "45 min", type: "video", videoId: "s_o8dwzRlu4" },
         ]
       },
     ]
@@ -172,7 +173,7 @@ const pathData: Record<string, PathData> = {
     description: "Dive into AI and machine learning with hands-on projects.",
     level: "Intermediate",
     duration: "18 weeks",
-    students: "6,120",
+    students: null,
     tags: ["Python", "TensorFlow", "Neural Networks", "Data Science"],
     overview: "Learn machine learning from fundamentals to advanced deep learning techniques with real-world projects.",
     whatYouLearn: [
@@ -187,28 +188,104 @@ const pathData: Record<string, PathData> = {
       {
         title: "Module 1: Python for ML",
         lessons: [
-          { title: "NumPy Fundamentals", duration: "45 min", type: "video", videoId: "QUT1VHiLmmI", completed: false },
-          { title: "Pandas for Data Analysis", duration: "50 min", type: "video", videoId: "vmEHCJofslg", completed: false },
-          { title: "Data Visualization", duration: "40 min", type: "video", videoId: "a9UrKTVEeZA", completed: false },
+          { title: "NumPy Fundamentals", duration: "45 min", type: "video", videoId: "QUT1VHiLmmI"},
+          { title: "Pandas for Data Analysis", duration: "50 min", type: "video", videoId: "vmEHCJofslg"},
+          { title: "Data Visualization", duration: "40 min", type: "video", videoId: "a9UrKTVEeZA"},
         ]
       },
       {
         title: "Module 2: ML Fundamentals",
         lessons: [
-          { title: "Introduction to Machine Learning", duration: "55 min", type: "video", videoId: "ukzFI9rgwfU", completed: false },
-          { title: "Linear Regression", duration: "45 min", type: "video", videoId: "NUXdtN1W1FE", completed: false },
+          { title: "Introduction to Machine Learning", duration: "55 min", type: "video", videoId: "ukzFI9rgwfU"},
+          { title: "Linear Regression", duration: "45 min", type: "video", videoId: "NUXdtN1W1FE"},
         ]
       },
     ]
   },
 };
 
+// Key format: "moduleIndex-lessonIndex"
+function makeLessonKey(moduleIndex: number, lessonIndex: number) {
+  return `${moduleIndex}-${lessonIndex}`;
+}
+
 export default function PathDetail() {
   const { pathId } = useParams();
   const [expandedModules, setExpandedModules] = useState<number[]>([0]);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
-  
+  const [playingKey, setPlayingKey] = useState<string | null>(null);
   const path = pathData[pathId as string];
+  const [completedSet, setCompletedSet] = useState<Set<string>>(new Set());
+  const [loadingProgress, setLoadingProgress] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+
+  const totalLessons = path
+    ? path.modules.reduce((acc, m) => acc + m.lessons.length, 0)
+    : 0;
+  const completedLessons = completedSet.size;
+  const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+  //  Load saved progress on mount
+  useEffect(() => {
+    if (!path) return;
+    setIsLoaded(false);
+    setCompletedSet(new Set());
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setIsLoaded(true);
+      setLoadingProgress(false);
+      return;
+    }
+    fetch(`http://localhost:5000/api/get-path-progress/${pathId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        console.log("📦 Loaded from DB:", data);
+        if (Array.isArray(data.completedLessons)) {
+          setCompletedSet(new Set(data.completedLessons));
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setLoadingProgress(false);
+        setTimeout(() => setIsLoaded(true), 0);
+      });
+  }, [pathId]);
+
+  // Save progress whenever completedSet changes (skip on first load)
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const token = localStorage.getItem("token");
+
+    // DEBUG - check these in browser console
+    console.log("🔵 Save triggered");
+    console.log("Token:", token ? "EXISTS" : "MISSING");
+    console.log("PathId:", pathId);
+    console.log("CompletedLessons:", Array.from(completedSet));
+    
+    if (!token) return;
+
+    fetch("http://localhost:5000/api/save-path-progress", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        pathId,
+        completedLessons: Array.from(completedSet),
+      }),  
+    })
+      .then(r => r.json())
+      .then(data => console.log("✅ Save response:", data))   
+      .catch(err => console.error("❌ Save error:", err));
+  }, [completedSet, loadingProgress, pathId]);
+
+
 
   if (!path) {
     return (
@@ -223,19 +300,61 @@ export default function PathDetail() {
     );
   }
 
-  const totalLessons = path.modules.reduce((acc, m) => acc + m.lessons.length, 0);
-  const completedLessons = path.modules.reduce(
-    (acc, m) => acc + m.lessons.filter(l => l.completed).length, 0
-  );
-  const progress = Math.round((completedLessons / totalLessons) * 100);
+  if (loadingProgress) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading your progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   const toggleModule = (index: number) => {
-    setExpandedModules(prev => 
-      prev.includes(index) 
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
+    setExpandedModules((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
   };
+
+  // Mark current playing lesson as complete
+  function markCurrentComplete() {
+    if (!playingKey) return;
+    setCompletedSet((prev) => new Set([...prev, playingKey]));
+  }
+
+  // Toggle completion manually
+  function toggleLessonComplete(key: string) {
+    setCompletedSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  // Start/Continue Learning — jump to first incomplete lesson
+  function handleStartLearning() {
+    for (let mi = 0; mi < path.modules.length; mi++) {
+      for (let li = 0; li < path.modules[mi].lessons.length; li++) {
+        const key = makeLessonKey(mi, li);
+        if (!completedSet.has(key)) {
+          const lesson = path.modules[mi].lessons[li];
+          if (lesson.videoId) {
+            setPlayingVideo(lesson.videoId);
+            setPlayingKey(key);
+            // Expand the module and scroll up
+            setExpandedModules((prev) => (prev.includes(mi) ? prev : [...prev, mi]));
+            setTimeout(() => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }, 100);
+          }
+          return;
+        }
+      }
+    }
+  }
+  
 
   const getLessonIcon = (type: string) => {
     switch (type) {
@@ -274,7 +393,7 @@ export default function PathDetail() {
                   </span>
                   <span className="text-sm text-primary-foreground/80 flex items-center gap-1">
                     <Users className="w-4 h-4" />
-                    {path.students} enrolled
+                    {path.students} 
                   </span>
                 </div>
                 <h1 className="font-heading text-3xl md:text-4xl font-bold text-primary-foreground mb-2">
@@ -290,9 +409,14 @@ export default function PathDetail() {
                 </div>
               </div>
               <div className="flex flex-col items-start lg:items-end gap-4">
-                <Button variant="secondary" size="lg" className="group">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="group"
+                  onClick={handleStartLearning}
+                >
                   <Play className="w-5 h-5 mr-2" />
-                  Start Learning
+                  {completedLessons > 0 ? "Continue Learning" : "Start Learning"}
                 </Button>
                 <div className="flex items-center gap-4 text-sm text-primary-foreground/80">
                   <span className="flex items-center gap-1">
@@ -330,6 +454,22 @@ export default function PathDetail() {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
+                </div>
+                <div className="p-4 flex items-center justify-between bg-card border-t border-border">
+                  <p className="text-sm text-muted-foreground">
+                    {playingKey && completedSet.has(playingKey)
+                      ? " Lesson marked as complete"
+                      : "Finished watching? Mark this lesson as complete."}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant={playingKey && completedSet.has(playingKey) ? "outline" : "gradient"}
+                    onClick={markCurrentComplete}
+                    disabled={!!(playingKey && completedSet.has(playingKey))}
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-1" />
+                    {playingKey && completedSet.has(playingKey) ? "Completed" : "Mark Complete"}
+                  </Button>
                 </div>
               </motion.div>
             )}
@@ -383,32 +523,74 @@ export default function PathDetail() {
                       >
                         {module.lessons.map((lesson, lessonIndex) => {
                           const Icon = getLessonIcon(lesson.type);
+                          const key = makeLessonKey(moduleIndex, lessonIndex);
+                          const isCompleted = completedSet.has(key);
+                          const isPlaying = playingKey === key;
                           return (
                             <div
                               key={lessonIndex}
-                              className="flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors cursor-pointer border-b border-border last:border-b-0"
-                              onClick={() => lesson.videoId && setPlayingVideo(lesson.videoId)}
+                              className={`flex items-center justify-between p-4 transition-colors border-b border-border last:border-b-0 ${
+                                isPlaying ? "bg-primary/10" : "hover:bg-secondary/30 cursor-pointer"
+                              }`}
                             >
-                              <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                  lesson.completed ? "bg-success/20 text-success" : "bg-secondary text-muted-foreground"
-                                }`}>
-                                  {lesson.completed ? (
+                              {/* Left: icon + title */}
+                              <div
+                                className="flex items-center gap-3 flex-1"
+                                onClick={() => {
+                                  if (lesson.videoId) {
+                                    setPlayingVideo(lesson.videoId);
+                                    setPlayingKey(key);
+                                    setExpandedModules((prev) =>
+                                      prev.includes(moduleIndex) ? prev : [...prev, moduleIndex]
+                                    );
+                                    setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 100);
+                                  }
+                                }}
+                              >
+                                <div
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                    isCompleted
+                                      ? "bg-success/20 text-success"
+                                      : isPlaying
+                                      ? "bg-primary/20 text-primary"
+                                      : "bg-secondary text-muted-foreground"
+                                  }`}
+                                >
+                                  {isCompleted ? (
                                     <CheckCircle2 className="w-4 h-4" />
                                   ) : (
                                     <Icon className="w-4 h-4" />
                                   )}
                                 </div>
                                 <div>
-                                  <p className={lesson.completed ? "text-muted-foreground" : "text-foreground"}>
+                                  <p className={isCompleted ? "text-muted-foreground line-through" : "text-foreground"}>
                                     {lesson.title}
                                   </p>
                                   <p className="text-xs text-muted-foreground">{lesson.duration}</p>
                                 </div>
                               </div>
-                              {lesson.type === "video" && (
-                                <Play className="w-4 h-4 text-primary" />
-                              )}
+
+                              {/* Right: play icon + toggle complete checkbox */}
+                              <div className="flex items-center gap-2 shrink-0">
+                                {lesson.type === "video" && (
+                                  <Play className={`w-4 h-4 ${isPlaying ? "text-primary" : "text-muted-foreground"}`} />
+                                )}
+                                {/*  Toggle complete button per lesson */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleLessonComplete(key);
+                                  }}
+                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                    isCompleted
+                                      ? "bg-success border-success text-white"
+                                      : "border-muted-foreground hover:border-success"
+                                  }`}
+                                  title={isCompleted ? "Mark incomplete" : "Mark complete"}
+                                >
+                                  {isCompleted && <CheckCircle2 className="w-3 h-3" />}
+                                </button>
+                              </div>
                             </div>
                           );
                         })}
@@ -419,6 +601,7 @@ export default function PathDetail() {
               </div>
             </motion.div>
           </div>
+                              
 
           {/* Sidebar */}
           <div className="space-y-6">
@@ -434,7 +617,20 @@ export default function PathDetail() {
                 <span>{progress}% Complete</span>
                 <span>{completedLessons}/{totalLessons} lessons</span>
               </div>
-              <Button variant="gradient" className="w-full">Continue Learning</Button>
+              <Button variant="gradient" className="w-full" onClick={handleStartLearning}>
+                {completedLessons > 0 ? "Continue Learning" : "Start Learning"}
+              </Button>
+
+              {progress === 100 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-3 rounded-xl bg-success/10 border border-success/30 text-success text-sm text-center font-medium"
+                >
+                  🎉 Path Complete! You've finished all lessons.
+                </motion.div>
+              )}
+    
             </motion.div>
 
             {/* What You'll Learn */}
@@ -455,7 +651,7 @@ export default function PathDetail() {
               </ul>
             </motion.div>
 
-            {/* Certificate */}
+            {/* new skill*/}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -463,9 +659,9 @@ export default function PathDetail() {
               className="rounded-2xl gradient-primary p-6 text-center"
             >
               <Award className="w-12 h-12 mx-auto mb-3 text-primary-foreground" />
-              <h3 className="font-heading font-semibold text-primary-foreground mb-2">Earn a Certificate</h3>
+              <h3 className="font-heading font-semibold text-primary-foreground mb-2">Earn a new skill</h3>
               <p className="text-sm text-primary-foreground/80">
-                Complete this path and earn a verified certificate to showcase your skills.
+                Complete this path and earn a new skill to showcase your talent.
               </p>
             </motion.div>
           </div>

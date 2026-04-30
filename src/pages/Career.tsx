@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { authHeaders } from "@/lib/api";
+import { useNavigate } from "react-router-dom";
 import { 
   Briefcase, 
   FileText,
@@ -16,6 +19,39 @@ import {
   BookOpen,
   Users
 } from "lucide-react";
+
+type Task = {
+  task: string;
+  completed: boolean;
+  impact: string;
+};
+
+type CareerPath = {
+  title: string;
+  match: number;
+  salary: string;
+  demand: string;
+  skills: string[];
+  description: string;
+};
+
+type Course = {
+  title: string;
+  duration: string;
+  type: string;
+};
+
+type CareerData = {
+  resumeText?: string;
+  linkedinUrl?: string;
+  githubUsername?: string;
+  careerPaths?: CareerPath[];
+  tasks?: Task[];
+  recommendedCourses?: Course[];
+  employabilityScore?: number;
+};
+
+
 
 const careerPaths = [
   {
@@ -60,8 +96,164 @@ const recommendedCourses = [
 ];
 
 export default function Career() {
-  const completedTasks = employabilityTasks.filter(t => t.completed).length;
-  const employabilityScore = Math.round((completedTasks / employabilityTasks.length) * 100);
+  const [tasks, setTasks] = useState<Task[]>(employabilityTasks);
+  const [careerData, setCareerData] = useState<CareerData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  const [studentProfile] = useState({
+    resumeText:
+    "Frontend developer skilled in React, Node.js, MongoDB and TypeScript",
+
+    githubProjects: [
+      {
+        name: "AI Learning Platform",
+        stars: 10,
+      },
+    ],
+
+    linkedinProfile:
+      "Computer Science student interested in AI and Web Development",
+  });
+    
+  
+
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const employabilityScore =
+  careerData?.employabilityScore ||
+  Math.round((completedTasks / tasks.length) * 100);
+
+  async function saveCareerProgress(updatedTasks: Task[]) {
+    try {
+      
+      await fetch("http://localhost:5000/api/save-career-progress", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          
+          tasks: updatedTasks,
+        }),
+      });
+    } catch (error) {
+      console.error("Save failed", error);
+    }
+  }
+
+  function toggleTask(taskName: string) {
+    const updatedTasks = tasks.map((t) =>
+      t.task === taskName
+        ? { ...t, completed: !t.completed }
+        : t
+    );
+
+    setTasks(updatedTasks);
+    saveCareerProgress(updatedTasks);
+  }
+
+
+  async function fetchCareerProgress() {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/get-career-page",
+        {
+          headers: authHeaders(),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.tasks) {
+        setTasks(data.tasks);
+      }
+    } catch (error) {
+      console.error("Fetch failed", error);
+    }
+  }
+
+  
+
+  async function generateCareerPage() {
+    try {
+      setLoading(true);
+      setError("");
+
+      
+
+      const response = await fetch(
+        "http://localhost:5000/api/generate-career-guidance",
+        {
+          method: "POST",
+          headers: authHeaders(),
+
+        body: JSON.stringify({
+          resumeText: studentProfile.resumeText,
+          githubData: studentProfile.githubProjects,
+          linkedinData: studentProfile.linkedinProfile,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error);
+      }
+
+      setCareerData(data);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Something went wrong");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function fetchCareerPage() {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        "http://localhost:5000/api/get-career-page",
+        {
+          headers: authHeaders(),
+        }
+      );
+      const data: CareerData = await response.json();
+
+      if (data) {
+        setCareerData(data);
+
+        if (data.tasks) {
+          setTasks(data.tasks);
+        }
+      }
+    } catch (error) {
+      console.error("Career fetch failed", error);
+    }
+  }
+
+  useEffect(() => {
+    fetchCareerProgress();
+    fetchCareerPage();
+    
+  }, []);
+
+ if (loading) {
+    return <div className="p-10">Generating AI Career Guidance...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-10">
+        <p>{error}</p>
+        <Button onClick={generateCareerPage}>Retry</Button>
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen py-12">
@@ -78,6 +270,12 @@ export default function Career() {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Personalized career recommendations, resume tools, and interview preparation.
           </p>
+
+          <div className="mt-6 flex justify-center">
+            <Button onClick={generateCareerPage}>
+              {loading ? "Generating..." : "Generate AI Career Plan"}
+            </Button>
+          </div>
         </motion.div>
 
         {/* Employability Score */}
@@ -105,7 +303,7 @@ export default function Career() {
                     +12% this month
                   </span>
                   <span className="text-primary-foreground/60 text-sm">
-                    {completedTasks}/{employabilityTasks.length} tasks completed
+                    {completedTasks}/{tasks.length} tasks completed
                   </span>
                 </div>
               </div>
@@ -114,17 +312,17 @@ export default function Career() {
               <div className="text-center">
                 <FileText className="w-8 h-8 mx-auto mb-2 text-primary-foreground" />
                 <div className="font-heading font-bold text-primary-foreground">Resume</div>
-                <div className="text-xs text-primary-foreground/60">Updated</div>
+                <div className="text-xs text-primary-foreground/60">{careerData?.resumeText ? "AI Analyzed" : "Pending"}</div>
               </div>
               <div className="text-center">
                 <Linkedin className="w-8 h-8 mx-auto mb-2 text-primary-foreground" />
                 <div className="font-heading font-bold text-primary-foreground">LinkedIn</div>
-                <div className="text-xs text-primary-foreground/60">85% complete</div>
+                <div className="text-xs text-primary-foreground/60">{careerData?.linkedinUrl ? "Connected" : "Pending"}</div>
               </div>
               <div className="text-center">
                 <Github className="w-8 h-8 mx-auto mb-2 text-primary-foreground" />
                 <div className="font-heading font-bold text-primary-foreground">GitHub</div>
-                <div className="text-xs text-primary-foreground/60">5 projects</div>
+                <div className="text-xs text-primary-foreground/60">{careerData?.githubUsername ? "Projects Synced" : "Pending"}</div>
               </div>
             </div>
           </div>
@@ -138,7 +336,7 @@ export default function Career() {
               Recommended Career Paths
             </h2>
             <div className="space-y-4">
-              {careerPaths.map((career, index) => (
+              {(careerData?.careerPaths || careerPaths).map((career: CareerPath, index: number) => (
                 <motion.div
                   key={career.title}
                   initial={{ opacity: 0, y: 20 }}
@@ -188,10 +386,11 @@ export default function Career() {
             <h2 className="font-heading text-2xl font-semibold mt-8">Employability Checklist</h2>
             <div className="rounded-2xl bg-card border border-border p-6">
               <div className="space-y-3">
-                {employabilityTasks.map((item, index) => (
+                {tasks.map((item, index) => (
                   <div
                     key={item.task}
-                    className={`flex items-center justify-between p-3 rounded-lg ${
+                    onClick={() => toggleTask(item.task)}
+                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
                       item.completed ? "bg-success/10" : "bg-secondary/50"
                     }`}
                   >
@@ -250,7 +449,7 @@ export default function Career() {
             >
               <h3 className="font-heading font-semibold mb-4">Recommended for You</h3>
               <div className="space-y-3">
-                {recommendedCourses.map((course) => (
+                {(careerData?.recommendedCourses || recommendedCourses).map((course: Course) => (
                   <div key={course.title} className="p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors cursor-pointer">
                     <div className="flex items-center gap-2 mb-1">
                       <BookOpen className="w-4 h-4 text-primary" />

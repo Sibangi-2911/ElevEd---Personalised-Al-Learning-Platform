@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,10 +8,14 @@ import {
   Briefcase,
   Menu,
   X,
+  LogOut,
+  Brain,
+  User,
   GraduationCap,
 } from "lucide-react";
 import { useState } from "react";
-import { Brain } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 const navItems = [
   { name: "Home", path: "/", icon: null },
@@ -23,7 +27,16 @@ const navItems = [
 
 export function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  function handleLogout() {
+    logout();
+    toast.success("Logged out successfully");
+    navigate("/");
+    setMobileMenuOpen(false);
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
@@ -73,12 +86,33 @@ export function Navbar() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/auth">
-              <Button variant="ghost">Log In</Button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <Button variant="gradient">Get Started</Button>
-            </Link>
+            {user ? (
+              <>
+                {/* User greeting */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border">
+                  <div className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary-foreground" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">
+                    {user.name.split(" ")[0]}
+                  </span>
+                </div>
+                {/* Logout */}
+                <Button variant="ghost" onClick={handleLogout} className="text-muted-foreground hover:text-destructive">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Log Out
+                </Button>
+              </>
+            ) : (
+              <>
+              <Link to="/auth">
+                <Button variant="ghost">Log In</Button>
+              </Link>
+              <Link to="/auth?mode=signup">
+                <Button variant="gradient">Get Started</Button>
+              </Link>
+            </>
+          )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -119,25 +153,23 @@ export function Navbar() {
                   </Link>
                 );
               })}
+              {/* Mobile Auth */}
               <div className="flex gap-2 mt-4 pt-4 border-t border-border/50">
-                <Link
-                  to="/auth"
-                  className="flex-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button variant="outline" className="w-full">
-                    Log In
+                {user ? (
+                  <Button variant="outline" className="w-full text-destructive" onClick={handleLogout}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Log Out ({user.name.split(" ")[0]})
                   </Button>
-                </Link>
-                <Link
-                  to="/auth?mode=signup"
-                  className="flex-1"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button variant="gradient" className="w-full">
-                    Get Started
-                  </Button>
-                </Link>
+                ) : (
+                  <>
+                    <Link to="/auth" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full">Log In</Button>
+                    </Link>
+                    <Link to="/auth?mode=signup" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="gradient" className="w-full">Get Started</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
@@ -146,3 +178,7 @@ export function Navbar() {
     </nav>
   );
 }
+
+
+          
+

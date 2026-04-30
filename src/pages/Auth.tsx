@@ -16,10 +16,12 @@ import {
   Chrome
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,8 +60,15 @@ export default function Auth() {
       throw new Error(data.message);
     }
 
-    localStorage.setItem("user", JSON.stringify(data.user));
-    toast.success(data.message);
+    //localStorage.setItem("user", JSON.stringify(data.user));
+    //toast.success(data.message);
+    login(data.token, data.user);
+
+    toast.success(
+      isLogin
+        ? "Login successful"
+        : "Account created successfully"
+    );
 
     setFormData({
       name: "",
@@ -107,26 +116,7 @@ export default function Auth() {
               : "Start your learning journey today"}
           </p>
 
-          {/* Social Login */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <Button variant="outline" className="w-full">
-              <Chrome className="w-4 h-4 mr-2" />
-              Google
-            </Button>
-            <Button variant="outline" className="w-full">
-              <Github className="w-4 h-4 mr-2" />
-              GitHub
-            </Button>
-          </div>
-
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-            </div>
-          </div>
+          
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -252,9 +242,7 @@ export default function Auth() {
               </div>
             ))}
           </div>
-          <p className="text-sm text-primary-foreground/60 mt-4">
-            50,000+ active learners
-          </p>
+          
         </motion.div>
       </div>
     </div>

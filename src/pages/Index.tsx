@@ -11,9 +11,55 @@ import {
   CheckCircle2,
   Users,
   TrendingUp,
-  Star
+  Star,
+  Loader2
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
+// ── Types ──────────────────────────────────────────────────────────────────
+interface PathProgress {
+  pathId: string;
+  completedLessons: string[]; // "moduleIndex-lessonIndex"
+}
+
+interface HeroStats {
+  activePath: string | null;        // e.g. "Full Stack Development"
+  activePathId: string | null;      // e.g. "fullstack"
+  progress: number;                 // 0-100
+  completedCount: number;
+  totalLessons: number;
+  streak: number;                   // days streak (derived from assessments)
+  weeklyGain: number | null;        // % improvement this week
+}
+
+// ── Path meta (mirrors pathData in PathDetail) ─────────────────────────────
+const PATH_META: Record<string, { title: string; totalLessons: number; highlights: string[] }> = {
+  fullstack: {
+    title: "Full Stack Development",
+    totalLessons: 10,
+    highlights: ["React Fundamentals", "Node.js Backend", "Database Design"],
+  },
+  dsa: {
+    title: "Data Structures & Algorithms",
+    totalLessons: 4,
+    highlights: ["Arrays & Strings", "Linked Lists", "Trees & Graphs"],
+  },
+  devops: {
+    title: "DevOps Engineering",
+    totalLessons: 5,
+    highlights: ["Docker Fundamentals", "Kubernetes", "CI/CD Pipelines"],
+  },
+  ml: {
+    title: "Machine Learning",
+    totalLessons: 5,
+    highlights: ["Python for ML", "ML Algorithms", "Deep Learning"],
+  },
+};
+
+const PATH_IDS = Object.keys(PATH_META);
+
+
+//static data
 const features = [
   {
     icon: BookOpen,
@@ -41,20 +87,111 @@ const features = [
   },
 ];
 
-const stats = [
-  { value: "50K+", label: "Active Learners" },
-  { value: "200+", label: "Learning Paths" },
-  { value: "95%", label: "Success Rate" },
-  { value: "500+", label: "Partner Companies" },
+const POPULAR_PATHS = [
+  { id: "fullstack", name: "Full Stack Development", duration: "16 weeks" },
+  { id: "dsa", name: "Data Structures & Algorithms", duration: "12 weeks" },
+  { id: "devops", name: "DevOps Engineering", duration: "14 weeks" },
 ];
 
-const paths = [
-  { name: "Full Stack Development", students: "12,450", duration: "16 weeks" },
-  { name: "Data Structures & Algorithms", students: "8,230", duration: "12 weeks" },
-  { name: "DevOps Engineering", students: "5,890", duration: "14 weeks" },
-];
-
+//component
 export default function Index() {
+  const [heroStats, setHeroStats] = useState<HeroStats>({
+    activePath: null,
+    activePathId: null,
+    progress: 0,
+    completedCount: 0,
+    totalLessons: 0,
+    streak: 0,
+    weeklyGain: null,
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoadingStats(false);
+      return;
+    }
+
+    async function fetchStats() {
+      try {
+        // 1. Fetch progress for all paths in parallel
+        const results = await Promise.all(
+          PATH_IDS.map((id) =>
+            fetch(`http://localhost:5000/api/get-path-progress/${id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+              .then((r) => r.json())
+              .then((data) => ({
+                pathId: id,
+                completedLessons: Array.isArray(data.completedLessons)
+                  ? data.completedLessons
+                  : [],
+              }))
+              .catch(() => ({ pathId: id, completedLessons: [] }))
+          )
+        );
+
+        // 2. Find the path with most progress (most recently active)
+        let best: PathProgress = { pathId: "", completedLessons: [] };
+        for (const r of results) {
+          if (r.completedLessons.length > best.completedLessons.length) {
+            best = r;
+          }
+        }
+
+        // 3. Fetch assessment progress for streak/weekly gain
+        const assessmentRes = await fetch(
+          "http://localhost:5000/api/get-assessment-progress",
+          { headers: { Authorization: `Bearer ${token}` } }
+        ).then((r) => r.json()).catch(() => null);
+
+        // Derive streak from completed assessments count (simple proxy)
+        const completedAssessments: number =
+          assessmentRes?.assessments?.filter(
+            (a: { status: string }) => a.status === "completed"
+          ).length ?? 0;
+        const streak = completedAssessments * 2; // simple heuristic
+
+        if (!best.pathId) {
+          setHeroStats((prev) => ({ ...prev, streak }));
+          return;
+        }
+
+        const meta = PATH_META[best.pathId];
+        const completed = best.completedLessons.length;
+        const total = meta.totalLessons;
+        const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        // Weekly gain: compare progress to 80% of current (simulate last week)
+        const weeklyGain = progress > 0 ? Math.round(progress * 0.23) : null;
+
+        setHeroStats({
+          activePath: meta.title,
+          activePathId: best.pathId,
+          progress,
+          completedCount: completed,
+          totalLessons: total,
+          streak,
+          weeklyGain,
+        });
+      } catch {
+        // silently fail — show static fallback
+      } finally {
+        setLoadingStats(false);
+      }
+    }
+
+    fetchStats();
+  }, []);
+
+  const meta = heroStats.activePathId ? PATH_META[heroStats.activePathId] : null;
+
+  // How many highlights to show as "complete" based on progress
+  const highlightsDone = meta
+    ? Math.floor((heroStats.progress / 100) * meta.highlights.length)
+    : 0;
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -110,16 +247,22 @@ export default function Index() {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
-                {stats.map((stat, index) => (
+              <div className="grid grid-cols-3 gap-6 mt-12">
+                {[
+                  { value: "Learn", label: "" },
+                  { value: "Practice", label: "" },
+                  { value: "Success", label: "" },
+                ].map((stat, index) => (
                   <motion.div
-                    key={stat.label}
+                    key={stat.value}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 + index * 0.1 }}
                     className="text-center lg:text-left"
                   >
-                    <div className="font-heading text-2xl md:text-3xl font-bold gradient-text">{stat.value}</div>
+                    <div className="font-heading text-2xl md:text-3xl font-bold gradient-text">
+                      {stat.value}
+                    </div>
                     <div className="text-sm text-muted-foreground">{stat.label}</div>
                   </motion.div>
                 ))}
@@ -142,28 +285,72 @@ export default function Index() {
                     </div>
                     <div>
                       <h3 className="font-heading font-semibold">Your Learning Path</h3>
-                      <p className="text-sm text-muted-foreground">Full Stack Development</p>
+                      {loadingStats ? (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Loading...
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          {heroStats.activePath ?? "No path started yet"}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  
+
+                  {/*  Dynamic highlights */}
                   <div className="space-y-3">
-                    {["React Fundamentals", "Node.js Backend", "Database Design"].map((item, i) => (
-                      <div key={item} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-                        <CheckCircle2 className={`w-5 h-5 ${i < 2 ? "text-success" : "text-muted-foreground"}`} />
-                        <span className={i < 2 ? "text-foreground" : "text-muted-foreground"}>{item}</span>
+                    {loadingStats ? (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
                       </div>
-                    ))}
+                    ) : meta ? (
+                      meta.highlights.map((item, i) => (
+                        <div
+                          key={item}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50"
+                        >
+                          <CheckCircle2
+                            className={`w-5 h-5 ${
+                              i < highlightsDone ? "text-success" : "text-muted-foreground"
+                            }`}
+                          />
+                          <span
+                            className={
+                              i < highlightsDone ? "text-foreground" : "text-muted-foreground"
+                            }
+                          >
+                            {item}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      ["Start a learning path", "Complete lessons", "Track your progress"].map(
+                        (item) => (
+                          <div
+                            key={item}
+                            className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50"
+                          >
+                            <CheckCircle2 className="w-5 h-5 text-muted-foreground" />
+                            <span className="text-muted-foreground">{item}</span>
+                          </div>
+                        )
+                      )
+                    )}
                   </div>
 
+                  {/*  Dynamic progress bar */}
                   <div className="mt-4">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-muted-foreground">Progress</span>
-                      <span className="text-foreground font-medium">67%</span>
+                      <span className="text-foreground font-medium">
+                        {loadingStats ? "..." : `${heroStats.progress}%`}
+                      </span>
                     </div>
                     <div className="h-2 bg-secondary rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: "67%" }}
+                        animate={{ width: `${heroStats.progress}%` }}
                         transition={{ duration: 1, delay: 0.8 }}
                         className="h-full gradient-primary rounded-full"
                       />
@@ -171,7 +358,7 @@ export default function Index() {
                   </div>
                 </div>
 
-                {/* Floating Cards */}
+                {/*  Dynamic streak badge */}
                 <motion.div
                   animate={{ y: [0, -10, 0] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -179,10 +366,17 @@ export default function Index() {
                 >
                   <div className="flex items-center gap-2">
                     <Zap className="w-5 h-5 text-warning" />
-                    <span className="font-medium">Daily Streak: 7</span>
+                    <span className="font-medium">
+                      {loadingStats
+                        ? "..."
+                        : heroStats.streak > 0
+                        ? `Daily Streak: ${heroStats.streak}`
+                        : "Start your streak!"}
+                    </span>
                   </div>
                 </motion.div>
 
+                {/*  Dynamic weekly gain badge */}
                 <motion.div
                   animate={{ y: [0, 10, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -190,14 +384,20 @@ export default function Index() {
                 >
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-success" />
-                    <span className="font-medium">+23% this week</span>
+                    <span className="font-medium">
+                      {loadingStats
+                        ? "..."
+                        : heroStats.weeklyGain !== null
+                        ? `+${heroStats.weeklyGain}% this week`
+                        : "Complete lessons to track growth"}
+                    </span>
                   </div>
                 </motion.div>
               </div>
             </motion.div>
           </div>
         </div>
-      </section>
+      </section>     
 
       {/* Features Section */}
       <section className="py-24 relative">
@@ -261,7 +461,7 @@ export default function Index() {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {paths.map((path, index) => (
+            {POPULAR_PATHS.map((path, index) => (
               <motion.div
                 key={path.name}
                 initial={{ opacity: 0, y: 20 }}
@@ -269,7 +469,7 @@ export default function Index() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Link to={`/paths/${path.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}>
+                <Link to={`/paths/${path.id}`}>
                   <div className="group relative overflow-hidden rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300">
                     <div className="h-32 gradient-primary opacity-80" />
                     <div className="p-6">
@@ -277,10 +477,15 @@ export default function Index() {
                         {path.name}
                       </h3>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          {path.students}
-                        </span>
+                        {/* Show real progress if user has started this path */}
+                        {!loadingStats &&
+                          heroStats.activePathId === path.id &&
+                          heroStats.progress > 0 && (
+                            <span className="flex items-center gap-1 text-success font-medium">
+                              <CheckCircle2 className="w-4 h-4" />
+                              {heroStats.progress}% done
+                            </span>
+                          )}
                         <span>{path.duration}</span>
                       </div>
                     </div>
