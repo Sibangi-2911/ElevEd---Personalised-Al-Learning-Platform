@@ -151,28 +151,6 @@ export default function Career() {
     saveCareerProgress(updatedTasks);
   }
 
-
-  async function fetchCareerProgress() {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/get-career-page`,
-        {
-          headers: authHeaders(),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.tasks) {
-        setTasks(data.tasks);
-      }
-    } catch (error) {
-      console.error("Fetch failed", error);
-    }
-  }
-
-  
-
   async function generateCareerPage() {
     try {
       setLoading(true);
@@ -236,7 +214,6 @@ export default function Career() {
   }
 
   useEffect(() => {
-    fetchCareerProgress();
     fetchCareerPage();
     
   }, []);

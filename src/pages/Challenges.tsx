@@ -181,7 +181,7 @@ export default function Challenges() {
     }
 
     try {
-      const response = await fetch("${import.meta.env.VITE_API_URL}/api/peer-twin", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/peer-twin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -210,14 +210,17 @@ export default function Challenges() {
     updatedChallenges: Challenge[],
     updatedStats: Stats
   ) {
+      const token = localStorage.getItem("token");
+      if (!token) return;
       try {
-        await fetch("${import.meta.env.VITE_API_URL}/api/save-progress", {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/save-progress`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            email: "demo@gmail.com",
+            email: token,
             solvedChallenges: updatedChallenges
               .filter((c) => c.completed)
               .map((c) => c.id),
@@ -230,26 +233,28 @@ export default function Challenges() {
     }
 
     async function fetchProgress() {
-    try {
-      const response = await fetch(
-        "${import.meta.env.VITE_API_URL}/api/progress/demo@gmail.com"
-      );
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/progress/${encodeURIComponent(token)}`
+        );
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!data.stats) return;
+        if (!data.stats) return;
 
-      setChallenges((prev) =>
-        prev.map((challenge) => ({
-          ...challenge,
-          completed: data.solvedChallenges.includes(challenge.id),
-        }))
-      );
-      setStats(data.stats);
-    } catch (error) {
-      console.error("Fetch failed", error);
+        setChallenges((prev) =>
+          prev.map((challenge) => ({
+            ...challenge,
+            completed: data.solvedChallenges.includes(challenge.id),
+          }))
+        );
+        setStats(data.stats);
+      } catch (error) {
+        console.error("Fetch failed", error);
+      }
     }
-  }
 
 
   async function markSolved(challengeId: number) {

@@ -522,6 +522,22 @@ app.get("/api/student-profile/:email", async (req, res) => {
   }
 });
 
+// Save career tasks progress
+app.post("/api/save-career-progress", auth, async (req, res) => {
+  try {
+    const { tasks } = req.body;
+    const user = await User.findById(req.user.userId);
+    const existing = user.careerData || {};
+    await User.findByIdAndUpdate(req.user.userId, {
+      careerData: { ...existing, tasks },
+    });
+    res.json({ message: "Career progress saved" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to save career progress" });
+  }
+});
+
 
 /*  learning path */
 
