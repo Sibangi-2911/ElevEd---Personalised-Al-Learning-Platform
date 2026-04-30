@@ -269,7 +269,7 @@ export default function PathDetail() {
     
     if (!token) return;
 
-    fetch("${import.meta.env.VITE_API_URL}/api/save-path-progress", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/save-path-progress`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

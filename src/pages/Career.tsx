@@ -127,7 +127,7 @@ export default function Career() {
   async function saveCareerProgress(updatedTasks: Task[]) {
     try {
       
-      await fetch("${import.meta.env.VITE_API_URL}/api/save-career-progress", {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/save-career-progress`, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({
@@ -155,7 +155,7 @@ export default function Career() {
   async function fetchCareerProgress() {
     try {
       const response = await fetch(
-        "${import.meta.env.VITE_API_URL}/api/get-career-page",
+        `${import.meta.env.VITE_API_URL}/api/get-career-page`,
         {
           headers: authHeaders(),
         }
@@ -181,7 +181,7 @@ export default function Career() {
       
 
       const response = await fetch(
-        "${import.meta.env.VITE_API_URL}/api/generate-career-guidance",
+        `${import.meta.env.VITE_API_URL}/api/generate-career-guidance`,
         {
           method: "POST",
           headers: authHeaders(),
@@ -216,7 +216,7 @@ export default function Career() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "${import.meta.env.VITE_API_URL}/api/get-career-page",
+        `${import.meta.env.VITE_API_URL}/api/get-career-page`,
         {
           headers: authHeaders(),
         }

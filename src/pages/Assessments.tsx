@@ -190,7 +190,7 @@ function QuizModal({ assessment, onClose, onComplete }: QuizModalProps) {
   async function fetchQuestions() {
     setPhase("loading");
     try {
-      const res = await fetch("${import.meta.env.VITE_API_URL}/api/generate-quiz", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/generate-quiz`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -242,7 +242,7 @@ function QuizModal({ assessment, onClose, onComplete }: QuizModalProps) {
       );
 
       try {
-        const r = await fetch("${import.meta.env.VITE_API_URL}/api/learning-style", {
+        const r = await fetch(`${import.meta.env.VITE_API_URL}/api/learning-style`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ score: pct }),
@@ -566,7 +566,7 @@ export default function Assessments() {
       setLoadingProgress(false);
       return;
     }
-    fetch("${import.meta.env.VITE_API_URL}/api/get-assessment-progress", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/get-assessment-progress`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -583,7 +583,7 @@ export default function Assessments() {
     if (loadingProgress) return; // don't save during initial load
     const token = localStorage.getItem("token");
     if (!token) return;
-    fetch("${import.meta.env.VITE_API_URL}/api/save-assessment-progress", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/save-assessment-progress`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -625,7 +625,7 @@ export default function Assessments() {
       )
     );
 
-    fetch("${import.meta.env.VITE_API_URL}/api/learning-style", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/learning-style`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ score }),

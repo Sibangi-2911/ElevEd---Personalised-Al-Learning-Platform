@@ -142,7 +142,7 @@ export default function Index() {
 
         // 3. Fetch assessment progress for streak/weekly gain
         const assessmentRes = await fetch(
-          "${import.meta.env.VITE_API_URL}/api/get-assessment-progress",
+          `${import.meta.env.VITE_API_URL}/api/get-assessment-progress`,
           { headers: { Authorization: `Bearer ${token}` } }
         ).then((r) => r.json()).catch(() => null);
 

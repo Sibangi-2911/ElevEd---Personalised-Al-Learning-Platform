@@ -43,8 +43,8 @@ export default function Auth() {
     // Simulate authentication
     try {
       const endpoint = isLogin
-        ? "${import.meta.env.VITE_API_URL}/api/login"
-        : "${import.meta.env.VITE_API_URL}/api/signup";
+        ? `${import.meta.env.VITE_API_URL}/api/login`
+        : `${import.meta.env.VITE_API_URL}/api/signup`;
 
       const response = await fetch(endpoint, {
         method: "POST",
