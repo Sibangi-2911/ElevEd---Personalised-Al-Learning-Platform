@@ -30,6 +30,11 @@ const userSchema = new mongoose.Schema({
     type: Object,
     default: {},
   },
+  careerTasks: {
+    type: Array,
+    default: [],
+  },
+
   assessmentProgress: {
     type: Object,
     default: null,
