@@ -181,7 +181,7 @@ export default function Challenges() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/peer-twin", {
+      const response = await fetch("${import.meta.env.VITE_API_URL}/api/peer-twin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -211,7 +211,7 @@ export default function Challenges() {
     updatedStats: Stats
   ) {
       try {
-        await fetch("http://localhost:5000/api/save-progress", {
+        await fetch("${import.meta.env.VITE_API_URL}/api/save-progress", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -232,7 +232,7 @@ export default function Challenges() {
     async function fetchProgress() {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/progress/demo@gmail.com"
+        "${import.meta.env.VITE_API_URL}/api/progress/demo@gmail.com"
       );
 
       const data = await response.json();

@@ -190,7 +190,7 @@ function QuizModal({ assessment, onClose, onComplete }: QuizModalProps) {
   async function fetchQuestions() {
     setPhase("loading");
     try {
-      const res = await fetch("http://localhost:5000/api/generate-quiz", {
+      const res = await fetch("${import.meta.env.VITE_API_URL}/api/generate-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -242,7 +242,7 @@ function QuizModal({ assessment, onClose, onComplete }: QuizModalProps) {
       );
 
       try {
-        const r = await fetch("http://localhost:5000/api/learning-style", {
+        const r = await fetch("${import.meta.env.VITE_API_URL}/api/learning-style", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ score: pct }),
@@ -566,7 +566,7 @@ export default function Assessments() {
       setLoadingProgress(false);
       return;
     }
-    fetch("http://localhost:5000/api/get-assessment-progress", {
+    fetch("${import.meta.env.VITE_API_URL}/api/get-assessment-progress", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -578,12 +578,12 @@ export default function Assessments() {
       .finally(() => setLoadingProgress(false));
   }, []);
 
-  // ✅ Save progress to DB whenever assessmentList or skillLevelList changes
+  //  Save progress to DB whenever assessmentList or skillLevelList changes
   useEffect(() => {
     if (loadingProgress) return; // don't save during initial load
     const token = localStorage.getItem("token");
     if (!token) return;
-    fetch("http://localhost:5000/api/save-assessment-progress", {
+    fetch("${import.meta.env.VITE_API_URL}/api/save-assessment-progress", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -625,7 +625,7 @@ export default function Assessments() {
       )
     );
 
-    fetch("http://localhost:5000/api/learning-style", {
+    fetch("${import.meta.env.VITE_API_URL}/api/learning-style", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ score }),
@@ -649,7 +649,7 @@ export default function Assessments() {
     (a) => a.status === "completed"
   ).length;
 
-  // ✅ Show loading state while fetching
+  //  Show loading state while fetching
   if (loadingProgress) {
     return (
       <div className="min-h-screen flex items-center justify-center">

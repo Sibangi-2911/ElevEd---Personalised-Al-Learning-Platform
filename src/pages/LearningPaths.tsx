@@ -94,7 +94,7 @@ export default function LearningPaths() {
       return;
     }
 
-    const response = await fetch("http://localhost:5000/api/predict-mastery", {
+    const response = await fetch("${import.meta.env.VITE_API_URL}/api/predict-mastery", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

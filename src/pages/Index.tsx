@@ -118,7 +118,7 @@ export default function Index() {
         // 1. Fetch progress for all paths in parallel
         const results = await Promise.all(
           PATH_IDS.map((id) =>
-            fetch(`http://localhost:5000/api/get-path-progress/${id}`, {
+            fetch(`${import.meta.env.VITE_API_URL}/api/get-path-progress/${id}`, {
               headers: { Authorization: `Bearer ${token}` },
             })
               .then((r) => r.json())
@@ -142,7 +142,7 @@ export default function Index() {
 
         // 3. Fetch assessment progress for streak/weekly gain
         const assessmentRes = await fetch(
-          "http://localhost:5000/api/get-assessment-progress",
+          "${import.meta.env.VITE_API_URL}/api/get-assessment-progress",
           { headers: { Authorization: `Bearer ${token}` } }
         ).then((r) => r.json()).catch(() => null);
 

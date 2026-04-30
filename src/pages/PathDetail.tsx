@@ -238,7 +238,7 @@ export default function PathDetail() {
       setLoadingProgress(false);
       return;
     }
-    fetch(`http://localhost:5000/api/get-path-progress/${pathId}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/get-path-progress/${pathId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
@@ -269,7 +269,7 @@ export default function PathDetail() {
     
     if (!token) return;
 
-    fetch("http://localhost:5000/api/save-path-progress", {
+    fetch("${import.meta.env.VITE_API_URL}/api/save-path-progress", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
