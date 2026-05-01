@@ -286,10 +286,10 @@ function QuizModal({ assessment, onClose, onComplete }: QuizModalProps) {
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", stiffness: 280, damping: 24 }}
-        className="relative w-full max-w-xl rounded-2xl bg-card border border-border shadow-2xl overflow-hidden"
+        className="relative w-full max-w-xl rounded-2xl bg-card border border-border shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
       >
         {/* Top accent */}
-        <div className="h-1 w-full gradient-primary" />
+        <div className="h-1 w-full gradient-primary shrink-0" />
 
         {/* Close button */}
         <button
@@ -318,7 +318,7 @@ function QuizModal({ assessment, onClose, onComplete }: QuizModalProps) {
 
         {/* ── ERROR ── */}
         {phase === "error" && (
-          <div className="flex flex-col items-center justify-center py-16 px-8 gap-4 text-center">
+          <div className="flex flex-col items-center justify-center py-16 px-8 gap-4 text-center overflow-y-auto flex-1">
             <div className="w-14 h-14 rounded-2xl bg-destructive/20 flex items-center justify-center">
               <AlertCircle className="w-7 h-7 text-destructive" />
             </div>
@@ -337,7 +337,7 @@ function QuizModal({ assessment, onClose, onComplete }: QuizModalProps) {
 
         {/* ── QUIZ ── */}
         {phase === "quiz" && currentQuestion && (
-          <div className="p-8">
+          <div className="p-8 overflow-y-auto flex-1"> 
             <div className="flex items-center justify-between mb-2 text-sm text-muted-foreground">
               <span className="font-medium text-foreground">{assessment.title}</span>
               <span>
@@ -454,7 +454,7 @@ function QuizModal({ assessment, onClose, onComplete }: QuizModalProps) {
 
         {/* ── RESULT ── */}
         {phase === "result" && (
-          <div className="p-8">
+          <div className="p-8 overflow-y-auto flex-1">
             <div className="flex flex-col items-center mb-6">
               <div className="relative w-32 h-32 mb-4">
                 <svg className="w-32 h-32 -rotate-90" viewBox="0 0 100 100">
