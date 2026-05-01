@@ -214,7 +214,7 @@ End with one follow-up question as the last bullet.
       for (let i = 0; i < retries; i++) {
         try {
           return await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.0-flash",
             contents: prompt,
           });
         } catch (error) {
